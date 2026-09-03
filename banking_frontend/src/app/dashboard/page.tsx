@@ -1,7 +1,10 @@
+// src/app/dashboard/page.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import API from "@/lib/api";
 
 interface Profile {
@@ -30,7 +33,6 @@ export default function DashboardPage() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [transferLoading, setTransferLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function DashboardPage() {
     } catch (err: any) {
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
+        toast.error("Session expired. Please log in again.");
         router.push("/auth");
       }
     } finally {
@@ -59,7 +62,6 @@ export default function DashboardPage() {
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     setTransferLoading(true);
-    setMessage(null);
 
     try {
       const res = await API.post("/transfer", {
@@ -67,15 +69,13 @@ export default function DashboardPage() {
         amount: parseFloat(amount),
       });
 
-      setMessage({ text: res.data.message || "Transfer successful!", isError: false });
+      toast.success(res.data.message || "Transfer successful!");
       setRecipientId("");
       setAmount("");
       fetchData(); // Refresh balance and transaction table
     } catch (err: any) {
-      setMessage({
-        text: err.response?.data?.error || "Transfer failed. Please check inputs.",
-        isError: true,
-      });
+      const errorMsg = err.response?.data?.error || "Transfer failed. Please check inputs.";
+      toast.error(errorMsg);
     } finally {
       setTransferLoading(false);
     }
@@ -83,6 +83,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    toast.success("Logged out successfully");
     router.push("/auth");
   };
 
@@ -132,18 +133,6 @@ export default function DashboardPage() {
           {/* Money Transfer Form */}
           <div className="md:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
             <h3 className="text-lg font-bold text-white mb-4">Send Money</h3>
-
-            {message && (
-              <div
-                className={`mb-4 p-3 rounded-lg text-sm ${
-                  message.isError
-                    ? "bg-red-500/10 border border-red-500/30 text-red-400"
-                    : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
 
             <form onSubmit={handleTransfer} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
