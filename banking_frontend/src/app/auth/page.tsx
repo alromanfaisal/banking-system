@@ -4,6 +4,8 @@ import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { Lock, Mail, User, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBuildingColumns } from "@fortawesome/free-solid-svg-icons";
 
 function AuthForm() {
   const router = useRouter();
@@ -40,7 +42,6 @@ function AuthForm() {
       
       console.log("✅ Login Response Data:", loginRes.data);
 
-      // Support multiple token response structures (token, jwt, access_token)
       const token = loginRes.data?.token || loginRes.data?.jwt || loginRes.data?.access_token;
 
       if (!token) {
@@ -76,6 +77,16 @@ function AuthForm() {
 
   return (
     <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+      {/* Brand Header with FontAwesome Bank Icon */}
+      <div className="flex flex-col items-center justify-center space-y-2">
+        <div className="p-3.5 bg-blue-600/10 text-blue-500 rounded-2xl border border-blue-500/20 flex items-center justify-center">
+          <FontAwesomeIcon icon={faBuildingColumns} className="h-7 w-7 text-blue-500" />
+        </div>
+        <span className="text-xl font-bold tracking-tight text-white">
+          Apex<span className="text-blue-500">Bank</span>
+        </span>
+      </div>
+
       {/* Toggle Mode Buttons */}
       <div className="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
         <button

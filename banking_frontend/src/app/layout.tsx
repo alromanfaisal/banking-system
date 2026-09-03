@@ -14,7 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // Add suppressHydrationWarning here 👇
+    <html lang="en" suppressHydrationWarning>
       <body className="bg-slate-950 text-slate-100">
         <Navbar />
         {children}
