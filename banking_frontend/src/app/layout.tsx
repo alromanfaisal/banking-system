@@ -1,26 +1,22 @@
 // src/app/layout.tsx
 
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import Navbar from "@/components/Navbar";
 import "./globals.css";
-import ToasterProvider from "@/components/ToasterProvider";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Banking System",
-  description: "Enterprise full-stack banking web app",
+export const metadata = {
+  title: "ApexBank - Smart Digital Banking",
+  description: "Next-Gen Digital Banking Platform",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ToasterProvider />
+      <body className="bg-slate-950 text-slate-100">
+        <Navbar />
         {children}
       </body>
     </html>

@@ -1,13 +1,23 @@
 // src/app/dashboard/page.tsx
-
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import API from "@/lib/api";
+import { 
+  CreditCard, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  RefreshCw, 
+  LogOut, 
+  Send,
+  Clock, 
+  ShieldCheck, 
+  AlertCircle 
+} from "lucide-react";
+import api from "@/lib/api";
+import TransferModal from "@/components/TransferModal";
 
-interface Profile {
+interface UserProfile {
   id: number;
   full_name: string;
   email: string;
@@ -15,9 +25,10 @@ interface Profile {
   account_number: string;
   balance: number;
   currency: string;
+  created_at: string;
 }
 
-interface Transaction {
+interface TransactionRecord {
   id: number;
   from_account_id: number;
   to_account_id: number;
@@ -27,194 +38,198 @@ interface Transaction {
 }
 
 export default function DashboardPage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [recipientId, setRecipientId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [transferLoading, setTransferLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState<boolean>(false);
 
-  const fetchData = async () => {
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError("");
+
     try {
-      setLoading(true);
       const [profileRes, txRes] = await Promise.all([
-        API.get("/me"),
-        API.get("/transactions"),
+        api.get("/me"),
+        api.get("/transactions"),
       ]);
+
       setProfile(profileRes.data);
       setTransactions(txRes.data.transactions || []);
     } catch (err: any) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        toast.error("Session expired. Please log in again.");
-        router.push("/auth");
-      }
+      setError(err.response?.data?.error || "Failed to load dashboard data.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setTransferLoading(true);
-
-    try {
-      const res = await API.post("/transfer", {
-        to_account_id: parseInt(recipientId),
-        amount: parseFloat(amount),
-      });
-
-      toast.success(res.data.message || "Transfer successful!");
-      setRecipientId("");
-      setAmount("");
-      fetchData(); // Refresh balance and transaction table
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.error || "Transfer failed. Please check inputs.";
-      toast.error(errorMsg);
-    } finally {
-      setTransferLoading(false);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/auth?mode=signin");
+      return;
     }
-  };
+    fetchDashboardData();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    toast.success("Logged out successfully");
-    router.push("/auth");
+    router.push("/auth?mode=signin");
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500"></div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-4">
+        <RefreshCw className="h-8 w-8 text-blue-500 animate-spin" />
+        <p className="text-sm text-slate-400">Loading your balance & transactions...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 lg:p-12">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Top Bar */}
-        <header className="flex justify-between items-center bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
             <h1 className="text-2xl font-bold text-white">Welcome, {profile?.full_name}</h1>
-            <p className="text-slate-400 text-sm">{profile?.email}</p>
+            <p className="text-xs text-slate-400 mt-1">
+              Account ID: <span className="text-blue-400 font-bold">#{profile?.account_id}</span> • {profile?.email}
+            </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600 hover:text-white rounded-lg transition-all font-medium text-sm"
-          >
-            Logout
-          </button>
-        </header>
 
-        {/* Main Grid: Balance Card + Quick Transfer Form */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsTransferModalOpen(true)}
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-colors flex items-center space-x-2 shadow-lg shadow-blue-600/20"
+            >
+              <Send className="h-4 w-4" />
+              <span>Send Money</span>
+            </button>
+            <button
+              onClick={fetchDashboardData}
+              className="p-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-300 transition-colors"
+              title="Refresh Data"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-semibold transition-colors flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center space-x-3 text-sm text-red-400">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Balance Card & Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Account Balance Card */}
-          <div className="bg-gradient-to-br from-blue-700 to-indigo-900 p-6 rounded-2xl shadow-xl flex flex-col justify-between border border-blue-500/20">
-            <div>
-              <p className="text-blue-200 text-xs font-semibold tracking-wider uppercase">Account Balance</p>
-              <h2 className="text-4xl font-extrabold text-white mt-2">
-                ৳ {profile?.balance?.toLocaleString()} <span className="text-lg font-normal">{profile?.currency}</span>
-              </h2>
+          <div className="lg:col-span-2 bg-gradient-to-tr from-blue-900/40 via-slate-900 to-slate-900 border border-blue-500/30 p-8 rounded-3xl relative overflow-hidden flex flex-col justify-between space-y-8">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs text-blue-400 font-semibold tracking-wider uppercase">Live Balance</p>
+                <h2 className="text-4xl lg:text-5xl font-extrabold text-white mt-2">
+                  ৳{profile?.balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                </h2>
+              </div>
+              <div className="p-3 bg-blue-600/20 rounded-2xl text-blue-400 border border-blue-500/30">
+                <CreditCard className="h-7 w-7" />
+              </div>
             </div>
-            <div className="mt-8 border-t border-blue-400/20 pt-4 flex justify-between text-sm text-blue-100">
-              <span>Account Number</span>
-              <span className="font-mono font-bold">{profile?.account_number}</span>
+
+            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-800/80">
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wider">Account Number</p>
+                <p className="text-sm font-semibold text-slate-200 mt-1">{profile?.account_number}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wider">Currency</p>
+                <p className="text-sm font-semibold text-slate-200 mt-1">{profile?.currency}</p>
+              </div>
             </div>
           </div>
 
-          {/* Money Transfer Form */}
-          <div className="md:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-            <h3 className="text-lg font-bold text-white mb-4">Send Money</h3>
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl flex flex-col justify-between space-y-6">
+            <div className="flex items-center space-x-3 text-emerald-400">
+              <ShieldCheck className="h-6 w-6" />
+              <span className="text-sm font-semibold">Status: Active</span>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-xs text-slate-500 uppercase">Total Transactions</p>
+              <p className="text-2xl font-bold text-white">{transactions.length} Records</p>
+            </div>
 
-            <form onSubmit={handleTransfer} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                  Recipient Account ID
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={recipientId}
-                  onChange={(e) => setRecipientId(e.target.value)}
-                  placeholder="e.g. 2"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                  Amount (BDT)
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  step="any"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="e.g. 500"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <button
-                  type="submit"
-                  disabled={transferLoading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50"
-                >
-                  {transferLoading ? "Processing Transfer..." : "Transfer Funds"}
-                </button>
-              </div>
-            </form>
+            <div className="pt-4 border-t border-slate-800">
+              <p className="text-xs text-slate-500">Member Since</p>
+              <p className="text-sm font-semibold text-slate-300 mt-0.5">
+                {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Transaction History Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <h3 className="text-lg font-bold text-white mb-4">Recent Transactions</h3>
-          
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Clock className="h-5 w-5 text-blue-400" />
+              <h3 className="text-lg font-bold text-white">Recent Transactions</h3>
+            </div>
+          </div>
+
           {transactions.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-6">No transaction history found.</p>
+            <div className="text-center py-12 text-slate-500 text-sm">
+              No transactions recorded yet.
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
-                  <tr>
-                    <th className="px-4 py-3 rounded-l-lg">ID</th>
-                    <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">From Account</th>
-                    <th className="px-4 py-3">To Account</th>
-                    <th className="px-4 py-3">Amount</th>
-                    <th className="px-4 py-3 rounded-r-lg">Date</th>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
+                    <th className="pb-4 font-semibold">Type</th>
+                    <th className="pb-4 font-semibold">From / To</th>
+                    <th className="pb-4 font-semibold">Date & Time</th>
+                    <th className="pb-4 font-semibold text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50">
+                <tbody className="divide-y divide-slate-800/60 text-sm">
                   {transactions.map((tx) => {
-                    const isDebit = tx.from_account_id === profile?.account_id;
+                    const isCredit = tx.to_account_id === profile?.account_id;
                     return (
-                      <tr key={tx.id} className="hover:bg-slate-800/30">
-                        <td className="px-4 py-3 font-mono">#{tx.id}</td>
-                        <td className="px-4 py-3 font-semibold">{tx.type}</td>
-                        <td className="px-4 py-3 font-mono">Account #{tx.from_account_id}</td>
-                        <td className="px-4 py-3 font-mono">Account #{tx.to_account_id}</td>
-                        <td
-                          className={`px-4 py-3 font-bold ${
-                            isDebit ? "text-red-400" : "text-emerald-400"
-                          }`}
-                        >
-                          {isDebit ? "-" : "+"} ৳{tx.amount.toLocaleString()}
+                      <tr key={tx.id} className="hover:bg-slate-950/40 transition-colors">
+                        <td className="py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-xl ${
+                              isCredit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                            }`}>
+                              {isCredit ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                            </div>
+                            <span className="font-semibold text-white capitalize">{tx.type}</span>
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">
+                        <td className="py-4 text-slate-400 text-xs">
+                          {isCredit ? `From Account #${tx.from_account_id}` : `To Account #${tx.to_account_id}`}
+                        </td>
+                        <td className="py-4 text-slate-400 text-xs">
                           {new Date(tx.created_at).toLocaleString()}
+                        </td>
+                        <td className={`py-4 text-right font-bold ${
+                          isCredit ? "text-emerald-400" : "text-rose-400"
+                        }`}>
+                          {isCredit ? "+" : "-"}৳{tx.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                     );
@@ -226,6 +241,13 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      <TransferModal
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+        onSuccess={fetchDashboardData}
+        currentAccountId={profile?.account_id}
+      />
     </div>
   );
 }

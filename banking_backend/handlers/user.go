@@ -1,7 +1,7 @@
+//banking_backend/handlers/user.go
 package handlers
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -24,12 +24,12 @@ type UserProfileResp struct {
 }
 
 type TransactionRecord struct {
-	ID              int64     `json:"id"`
-	FromAccountID   int64     `json:"from_account_id"`
-	ToAccountID     int64     `json:"to_account_id"`
-	Amount          float64   `json:"amount"`
-	Type            string    `json:"type"`
-	CreatedAt       time.Time `json:"created_at"`
+	ID            int64     `json:"id"`
+	FromAccountID int64     `json:"from_account_id"`
+	ToAccountID   int64     `json:"to_account_id"`
+	Amount        float64   `json:"amount"`
+	Type          string    `json:"type"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // GetProfile retrieves logged-in user details, account info, and live balance
@@ -41,7 +41,7 @@ func GetProfile(c *gin.Context) {
 	}
 	userID := val.(int64)
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	var profile UserProfileResp
 
 	query := `
@@ -85,9 +85,8 @@ func GetTransactionHistory(c *gin.Context) {
 	}
 	userID := val.(int64)
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 
-	// Fetch user's account ID
 	var accountID int64
 	err := db.DB.QueryRow(ctx, `SELECT id FROM accounts WHERE user_id = $1`, userID).Scan(&accountID)
 	if err != nil {
@@ -95,7 +94,6 @@ func GetTransactionHistory(c *gin.Context) {
 		return
 	}
 
-	// Retrieve transactions where account is either sender or receiver
 	query := `
 		SELECT id, from_account_id, to_account_id, amount, type, created_at
 		FROM transactions
@@ -111,7 +109,7 @@ func GetTransactionHistory(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var transactions []TransactionRecord = []TransactionRecord{}
+	transactions := make([]TransactionRecord, 0)
 	for rows.Next() {
 		var txRecord TransactionRecord
 		if err := rows.Scan(

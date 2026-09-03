@@ -1,7 +1,7 @@
+// banking_backend/handlers/auth.go
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -38,7 +38,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	tx, err := db.DB.Begin(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start transaction"})
@@ -67,7 +67,7 @@ func Register(c *gin.Context) {
 	)
 
 	if err != nil {
-		log.Println("Error creating account:", err) // Prints actual DB error in terminal
+		log.Println("Error creating account:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create bank account"})
 		return
 	}
@@ -92,7 +92,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	var userID int64
 	var passwordHash string
 
