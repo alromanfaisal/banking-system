@@ -3,15 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuildingColumns, faArrowRight, faUserCheck } from "@fortawesome/free-solid-svg-icons";
+import { Landmark, ArrowRight, UserCheck } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check if user token exists in localStorage
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
   }, []);
@@ -31,7 +29,7 @@ export default function Navbar() {
         {/* ApexBank Brand Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="p-2.5 bg-blue-600/10 text-blue-500 rounded-2xl border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition-all">
-            <FontAwesomeIcon icon={faBuildingColumns} className="h-5 w-5" />
+            <Landmark className="h-5 w-5" />
           </div>
           <span className="text-lg font-bold tracking-tight text-white">
             Apex<span className="text-blue-500">Bank</span>
@@ -65,12 +63,12 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               <span>Dashboard</span>
-              <FontAwesomeIcon icon={faUserCheck} className="h-3.5 w-3.5" />
+              <UserCheck className="h-3.5 w-3.5" />
             </>
           ) : (
             <>
               <span>Get Started</span>
-              <FontAwesomeIcon icon={faArrowRight} className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </>
           )}
         </button>
