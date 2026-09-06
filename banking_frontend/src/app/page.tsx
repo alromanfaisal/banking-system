@@ -17,7 +17,10 @@ import {
   Briefcase,
   Building2,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  CheckCircle2,
+  ArrowUpRight,
+  Sparkles
 } from "lucide-react";
 
 export default function Home() {
@@ -113,7 +116,7 @@ export default function Home() {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-500 selection:text-white">
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
+      <section className="relative pt-20 pb-32 overflow-hidden border-b border-slate-800/80">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
@@ -137,14 +140,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Link
                 href="/auth?mode=signup"
-                className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center space-x-2"
+                className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center space-x-2 active:scale-95"
               >
                 <span>Get Started Now</span>
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <a
                 href="#features"
-                className="w-full sm:w-auto px-8 py-4 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 font-semibold rounded-xl text-center transition-colors"
+                className="w-full sm:w-auto px-8 py-4 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 font-semibold rounded-xl text-center transition-colors active:scale-95"
               >
                 Explore Features
               </a>
@@ -166,27 +169,79 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="bg-gradient-to-tr from-slate-900 to-slate-800 border border-slate-800 p-8 rounded-3xl shadow-2xl relative z-10 space-y-6">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-slate-400">Digital Banking Pass</span>
-                <CreditCard className="h-6 w-6 text-blue-400" />
-              </div>
-              <div className="py-4">
-                <p className="text-xs text-slate-500 uppercase tracking-widest">Available Balance</p>
-                <p className="text-4xl font-extrabold text-white mt-1">$ 248,500.00</p>
-              </div>
-              <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-400">
-                    <TrendingUp className="h-5 w-5" />
+          {/* Dynamic Hero Banner Visual Showcase (Replaces Balance Card) */}
+          <div className="relative flex justify-center items-center">
+            {/* Glowing background accent */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 blur-2xl rounded-3xl" />
+            
+            <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 p-6 rounded-3xl shadow-2xl relative z-10 space-y-6 backdrop-blur-sm">
+              {/* Card Header Badge */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                    <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">Transfer Received</p>
-                    <p className="text-xs text-slate-500">From Account #925296</p>
+                    <h4 className="text-sm font-bold text-white">Apex Core Engine</h4>
+                    <p className="text-xs text-slate-400">Live Platform Features</p>
                   </div>
                 </div>
-                <span className="text-sm font-bold text-emerald-400">+$ 50,000</span>
+                <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-semibold tracking-wider uppercase">
+                  Active
+                </span>
+              </div>
+
+              {/* Feature Showcase Items */}
+              <div className="space-y-3">
+                <div className="p-3.5 bg-slate-950/60 border border-slate-800/60 rounded-xl flex items-center justify-between hover:border-blue-500/30 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white">Sub-Second Settlement</p>
+                      <p className="text-[11px] text-slate-400">Atomic balance consistency</p>
+                    </div>
+                  </div>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                </div>
+
+                <div className="p-3.5 bg-slate-950/60 border border-slate-800/60 rounded-xl flex items-center justify-between hover:border-indigo-500/30 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white">Encrypted Vault</p>
+                      <p className="text-[11px] text-slate-400">256-bit tokenized sessions</p>
+                    </div>
+                  </div>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                </div>
+
+                <div className="p-3.5 bg-slate-950/60 border border-slate-800/60 rounded-xl flex items-center justify-between hover:border-purple-500/30 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                      <Globe2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white">Real-Time Ledger</p>
+                      <p className="text-[11px] text-slate-400">Instant statement generation</p>
+                    </div>
+                  </div>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                </div>
+              </div>
+
+              {/* Call-to-action mini banner */}
+              <div className="pt-2">
+                <Link 
+                  href="/auth?mode=signup"
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 shadow-lg shadow-blue-600/20 active:scale-95"
+                >
+                  <span>Create Account in 2 Minutes</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
               </div>
             </div>
           </div>
@@ -293,7 +348,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-24 border-t border-slate-800/80">
+      <section id="reviews" className="py-24 border-t border-slate-800/80">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-white">Customer Reviews</h2>
